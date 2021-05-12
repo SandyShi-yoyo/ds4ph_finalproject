@@ -8,7 +8,7 @@ output: html_document
 # Libraries
 ```{r global, include=FALSE}
 
-setwd("/Users/shunyaolei/RStudio/DSBME/project")
+# setwd("/Users/shunyaolei/RStudio/DSBME/project")
 library(dplyr)
 library(readr)
 library(klaR) # Naïve Bayes
@@ -27,10 +27,12 @@ library(randomForest)
 # Data
 ```{r warning=FALSE, message=FALSE}
 
-url1 = "https://raw.githubusercontent.com/ShunyaoLei/ds4ph_finalproject/main/diabetes-dataset.csv?token=AQ55A37EJI7DWULKGLXOLJ3ATPW2G"
-data1 = read_csv(url(url1))
-url2 = "https://raw.githubusercontent.com/ShunyaoLei/ds4ph_finalproject/main/diabetes_data_upload.csv?token=AQ55A363W6DRO6WRUZ7H27TATPW5C"
-data2 = read_csv(url(url2))
+# url1 = "https://raw.githubusercontent.com/ShunyaoLei/ds4ph_finalproject/main/diabetes-dataset.csv?token=AQ55A37EJI7DWULKGLXOLJ3ATPW2G"
+# data1 = read_csv(url(url1))
+# url2 = "https://raw.githubusercontent.com/ShunyaoLei/ds4ph_finalproject/main/diabetes_data_upload.csv?token=AQ55A363W6DRO6WRUZ7H27TATPW5C"
+# data2 = read_csv(url(url2))
+data1 = read_csv('diabetes-dataset.csv')
+data2 = read_csv('diabetes_data_upload.csv')
 
 ```
 
@@ -38,6 +40,8 @@ data2 = read_csv(url(url2))
 ```{r warning=FALSE, message=FALSE}
 str(data1)
 str(data2)
+# data1<-data1[complete.cases(data1), ]
+# data2<-data2[complete.cases(data2), ]
 ```
 
 # data1
@@ -48,6 +52,8 @@ data1$Outcome = as.factor(data1$Outcome)
 testidx <- which(1:(dim(data1[,1])[1])%%5 == 0)
 dftrain <- data1[-testidx,]
 dftest <- data1[testidx,]
+hist(as.numeric(dftrain$Outcome))
+hist(as.numeric(dftest$Outcome))
 svm_model <- svm(Outcome~., data = dftrain, probability = T, kernel="polynomial", degree=5)
 svm_prediction <- predict(svm_model, dftest, probability = T)
 table(predicted=svm_prediction, observed=dftest$Outcome)
@@ -88,11 +94,18 @@ legend(0.6,0.3,c(c(paste('AUC is', round(rfauc,3))),"\n"),
 # data2
 ```{r}
 
-# SVM
 data2$class = as.factor(data2$class)
 testidx2 <- which(1:(dim(data2[,1])[1])%%5 == 0)
+# dftrain2 <- data2[-testidx2,]
+# dftest2 <- data2[testidx2,]
+hist(as.numeric(dftrain$Outcome))
+hist(as.numeric(dftest$Outcome))
+names(data2)[c(5,8,9,12,13,14)]<-c("sudden_weight_loss","Genital_thrush","visual_blurring","delayed_healing","partial_paresis","muscle_stiffness")
 dftrain2 <- data2[-testidx2,]
 dftest2 <- data2[testidx2,]
+```
+```{r}
+# SVM
 svm_model2 <- svm(class~., data = dftrain2, probability = T, kernel="polynomial", degree=5)
 svm_prediction2 <- predict(svm_model2, dftest2, probability = T)
 table(predicted=svm_prediction2, observed=dftest2$class)
@@ -110,7 +123,8 @@ legend(0.6,0.3,c(c(paste('AUC is', round(svmauc2,3))),"\n"),
        border="white",cex=1.0, box.col = "white")
 
 # RF
-names(data2)[c(5,8,9,12,13,14)]<-c("sudden_weight_loss","Genital_thrush","visual_blurring","delayed_healing","partial_paresis","muscle_stiffness")
+
+
 rf_classifier2 = randomForest(class ~ ., data=dftrain2, ntree=100, mtry=2, importance=TRUE, probability = T)
 prediction_for_table2 <- predict(rf_classifier2,dftest2[,-17], probability = T)
 table(observed=dftest2$class,predicted=prediction_for_table2)
