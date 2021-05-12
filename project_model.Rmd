@@ -1,0 +1,168 @@
+---
+title: "DSBME_finalProject"
+author: "Shunyao Lei"
+date: "5/12/2021"
+output: html_document
+---
+
+# Libraries
+```{r global, include=FALSE}
+
+setwd("/Users/shunyaolei/RStudio/DSBME/project")
+library(dplyr)
+library(readr)
+library(klaR) # Naïve Bayes
+library(e1071) # SVM
+library(ROCR) # ROC curves and AUC
+library(VennDiagram)
+library(RColorBrewer)
+library(vioplot)
+library(hfunk)
+library(gplots) # heatmap.2
+library(caret) # confusionmatrix
+library(randomForest)
+
+```
+
+# Data
+```{r warning=FALSE, message=FALSE}
+
+url1 = "https://raw.githubusercontent.com/ShunyaoLei/ds4ph_finalproject/main/diabetes-dataset.csv?token=AQ55A37EJI7DWULKGLXOLJ3ATPW2G"
+data1 = read_csv(url(url1))
+url2 = "https://raw.githubusercontent.com/ShunyaoLei/ds4ph_finalproject/main/diabetes_data_upload.csv?token=AQ55A363W6DRO6WRUZ7H27TATPW5C"
+data2 = read_csv(url(url2))
+
+```
+
+
+```{r warning=FALSE, message=FALSE}
+str(data1)
+str(data2)
+```
+
+# data1
+```{r}
+
+# SVM
+data1$Outcome = as.factor(data1$Outcome)
+testidx <- which(1:(dim(data1[,1])[1])%%5 == 0)
+dftrain <- data1[-testidx,]
+dftest <- data1[testidx,]
+svm_model <- svm(Outcome~., data = dftrain, probability = T, kernel="polynomial", degree=5)
+svm_prediction <- predict(svm_model, dftest, probability = T)
+table(predicted=svm_prediction, observed=dftest$Outcome)
+confusionMatrix(svm_prediction, dftest$Outcome, positive = "1")
+
+pred_class_svm <- attr(svm_prediction, "probabilities")[, "1"]
+actual_class_svm <- dftest$Outcome == '1'
+pred_svm <- prediction(pred_class_svm, actual_class_svm)
+svmperf <- performance(pred_svm, "tpr", "fpr")
+svmauc <- performance(pred_svm, "auc")
+svmauc <- unlist(slot(svmauc, "y.values"))
+plot(svmperf, colorize=TRUE)
+title("SVM ROC curve and AUC")
+legend(0.6,0.3,c(c(paste('AUC is', round(svmauc,3))),"\n"),
+       border="white",cex=1.0, box.col = "white")
+
+# RF
+rf_classifier = randomForest(Outcome ~ ., data=dftrain, ntree=100, mtry=2, importance=TRUE, probability = T)
+prediction_for_table <- predict(rf_classifier,dftest[,-9], probability = T)
+table(observed=dftest$Outcome,predicted=prediction_for_table)
+confusionMatrix(prediction_for_table, dftest$Outcome, positive = "1")
+
+prediction_for_roc_curve <- predict(rf_classifier,dftest[,-9],type="prob")
+pred_class_rf <- prediction_for_roc_curve[, "1"]
+actual_class_rf <- dftest$Outcome == '1'
+pred_rf <- prediction(pred_class_rf, actual_class_rf)
+rfperf <- performance(pred_rf, "tpr", "fpr")
+rfauc <- performance(pred_rf, "auc")
+rfauc <- unlist(slot(rfauc, "y.values"))
+plot(rfperf, colorize=TRUE)
+title("RF ROC curve and AUC")
+legend(0.6,0.3,c(c(paste('AUC is', round(rfauc,3))),"\n"),
+       border="white",cex=1.0, box.col = "white")
+
+
+```
+
+# data2
+```{r}
+
+# SVM
+data2$class = as.factor(data2$class)
+testidx2 <- which(1:(dim(data2[,1])[1])%%5 == 0)
+dftrain2 <- data2[-testidx2,]
+dftest2 <- data2[testidx2,]
+svm_model2 <- svm(class~., data = dftrain2, probability = T, kernel="polynomial", degree=5)
+svm_prediction2 <- predict(svm_model2, dftest2, probability = T)
+table(predicted=svm_prediction2, observed=dftest2$class)
+confusionMatrix(svm_prediction2, dftest2$class, positive = "Positive")
+
+pred_class_svm2 <- attr(svm_prediction2, "probabilities")[, "Positive"]
+actual_class_svm2 <- dftest2$class == 'Positive'
+pred_svm2 <- prediction(pred_class_svm2, actual_class_svm2)
+svmperf2 <- performance(pred_svm2, "tpr", "fpr")
+svmauc2 <- performance(pred_svm2, "auc")
+svmauc2 <- unlist(slot(svmauc2, "y.values"))
+plot(svmperf2, colorize=TRUE)
+title("SVM ROC curve and AUC")
+legend(0.6,0.3,c(c(paste('AUC is', round(svmauc2,3))),"\n"),
+       border="white",cex=1.0, box.col = "white")
+
+# RF
+names(data2)[c(5,8,9,12,13,14)]<-c("sudden_weight_loss","Genital_thrush","visual_blurring","delayed_healing","partial_paresis","muscle_stiffness")
+rf_classifier2 = randomForest(class ~ ., data=dftrain2, ntree=100, mtry=2, importance=TRUE, probability = T)
+prediction_for_table2 <- predict(rf_classifier2,dftest2[,-17], probability = T)
+table(observed=dftest2$class,predicted=prediction_for_table2)
+confusionMatrix(prediction_for_table2, dftest2$class, positive = "Positive")
+
+prediction_for_roc_curve2 <- predict(rf_classifier2,dftest2[,-17],type="prob")
+pred_class_rf2 <- prediction_for_roc_curve2[, "Positive"]
+actual_class_rf2 <- dftest2$class == 'Positive'
+pred_rf2 <- prediction(pred_class_rf2, actual_class_rf2)
+rfperf2 <- performance(pred_rf2, "tpr", "fpr")
+rfauc2 <- performance(pred_rf2, "auc")
+rfauc2 <- unlist(slot(rfauc2, "y.values"))
+plot(rfperf2, colorize=TRUE)
+title("RF ROC curve and AUC")
+legend(0.6,0.3,c(c(paste('AUC is', round(rfauc2,3))),"\n"),
+       border="white",cex=1.0, box.col = "white")
+
+```
+
+
+```{r}
+
+# Repeat using 10fold cross validation. Split data into 10 equally sized parts
+folds <- function(x,n) split(x, sort(rep(1:n,len=length(x))))
+crossdata <- folds(data2,5)
+pred_label <- list()
+actual_label <- list()
+auc_list <- list()
+
+for (i in 1:5) {
+  test <- do.call("rbind", crossdata[i])
+  train <- do.call("rbind", crossdata[-i])
+  
+  model <- svm(class~., data = train, probability = T, kernel="linear")
+  
+  prediction <- predict(model, test, probability = T)
+  table(test$class, prediction)
+  pred_label[[i]] <- prediction[, "Positive"]
+  actual_label[[i]] <- test$class == 'Positive'
+  
+}
+
+cross_pred <- prediction(pred_label, actual_label)
+cross_perf <- performance(cross_pred,"tpr","fpr")
+svmauc_c <- performance(cross_pred, "auc")
+svmauc_c <- unlist(slot(svmauc_c, "y.values"))
+
+plot(cross_perf,col="grey82",lty=3)
+legend(0.6,0.9,c(c(paste('AUC is', svmauc_c)),"\n"),
+       border="white",cex=0.5, box.col = "white")
+plot(cross_perf, lwd=3,avg="vertical",spread.estimate="boxplot",add=T)
+
+```
+
+
