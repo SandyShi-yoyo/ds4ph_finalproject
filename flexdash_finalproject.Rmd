@@ -74,7 +74,7 @@ draw_confusion_matrix <- function(cm) {
 }  
 ```
 
-Model Evalutation on Data 1
+Complete Model Evalutation on 2000 Patient Data
 =======================================================================
 
 Column {data-width=500}
@@ -96,18 +96,37 @@ cmsvm=confusionMatrix(svm_prediction, dftest$Outcome, positive = "1")
 draw_confusion_matrix(cmsvm)
 ```
 
-### SVM Prediction Model ROC
+### SVM Prediction Model 5 Folds Cross Validation ROC
 ```{r}
-pred_class_svm <- attr(svm_prediction, "probabilities")[, "1"]
-actual_class_svm <- dftest$Outcome == '1'
-pred_svm <- prediction(pred_class_svm, actual_class_svm)
-svmperf <- performance(pred_svm, "tpr", "fpr")
-svmauc <- performance(pred_svm, "auc")
-svmauc <- unlist(slot(svmauc, "y.values"))
-plot(svmperf, colorize=TRUE)
-title("SVM ROC curve and AUC")
-legend(0.6,0.3,c(c(paste('AUC is', round(svmauc,3))),"\n"),
-       border="white",cex=1.0, box.col = "white")
+# Repeat using 5fold cross validation. Split data into 5 equally sized parts
+folds <- function(x,n) split(x, sort(rep(1:n,len=length(x))))
+crossdata <- folds(data1,5)
+pred_label <- list()
+actual_label <- list()
+auc_list <- list()
+
+for (i in 1:5) {
+  test <- do.call("rbind", crossdata[i])
+  train <- do.call("rbind", crossdata[-i])
+  # print((train))
+  model <- svm(Outcome~., data = train, probability = T, kernel="linear")
+
+  prediction <- predict(model, test, probability = T)
+  pred_class_svm <- attr(prediction, "probabilities")[, "1"]
+  table(test$Outcome, pred_class_svm)
+  pred_label[[i]] <- pred_class_svm
+  actual_label[[i]] <- test$Outcome == 1
+  
+}
+cross_pred <- prediction(pred_label, actual_label)
+cross_perf <- performance(cross_pred,"tpr","fpr")
+svmauc_c <- performance(cross_pred, "auc")
+svmauc_c <- unlist(slot(svmauc_c, "y.values"))
+
+plot(cross_perf,col="grey82",lty=3)
+legend(0.6,0.9,c(c(paste('AUC is', svmauc_c)),"\n"),
+       border="white",cex=0.5, box.col = "white")
+plot(cross_perf, lwd=3,avg="vertical",spread.estimate="boxplot",add=T)
 ```
 
 Column {data-width=500}
@@ -122,50 +141,122 @@ cmrf=confusionMatrix(prediction_for_table, dftest$Outcome, positive = "1")
 draw_confusion_matrix(cmrf)
 ```
 
-### RF Prediction Model ROC
+
+### RF Prediction Model 5-Folds Cross Validation ROC
 ```{r}
-prediction_for_roc_curve <- predict(rf_classifier,dftest[,-9],type="prob")
-pred_class_rf <- prediction_for_roc_curve[, "1"]
-actual_class_rf <- dftest$Outcome == '1'
-pred_rf <- prediction(pred_class_rf, actual_class_rf)
-rfperf <- performance(pred_rf, "tpr", "fpr")
-rfauc <- performance(pred_rf, "auc")
-rfauc <- unlist(slot(rfauc, "y.values"))
-plot(rfperf, colorize=TRUE)
-title("RF ROC curve and AUC")
-legend(0.6,0.3,c(c(paste('AUC is', round(rfauc,3))),"\n"),
-       border="white",cex=1.0, box.col = "white")
+# Repeat using 10fold cross validation. Split data into 10 equally sized parts
+folds <- function(x,n) split(x, sort(rep(1:n,len=length(x))))
+crossdata <- folds(data1,5)
+pred_label <- list()
+actual_label <- list()
+auc_list <- list()
+
+for (i in 1:5) {
+  test <- do.call("rbind", crossdata[i])
+  train <- do.call("rbind", crossdata[-i])
+  # print((train))
+  rf_classifier <- randomForest(Outcome ~ ., data=dftrain, ntree=100, mtry=2, importance=TRUE, probability = T)
+  pred_class_rf <- predict(rf_classifier,test[,-9], probability = T)
 
 
-```
+  pred_prob_rf <- predict(rf_classifier,test[,-9],type="prob")[,"1"]
+
+  pred_label[[i]] <- pred_prob_rf
+  actual_label[[i]] <- test$Outcome == 1
+  
+}
+cross_pred <- prediction(pred_label, actual_label)
+cross_perf <- performance(cross_pred,"tpr","fpr")
+svmauc_c <- performance(cross_pred, "auc")
+svmauc_c <- unlist(slot(svmauc_c, "y.values"))
+
+plot(cross_perf,col="grey82",lty=3)
+legend(0.6,0.9,c(c(paste('AUC is', svmauc_c)),"\n"),
+       border="white",cex=0.5, box.col = "white")
+plot(cross_perf, lwd=3,avg="vertical",spread.estimate="boxplot",add=T)
 ```
 
 
 
 Test Your Chance of Getting Diabetes
 =======================================================================
-Column {data-width=650}
+Column {data-width=500}
 -----------------------------------------------------------------------
 
-### Chart A
+### Information Collection
+We need all 9 fields be filled out in order to make the best prediction.
+Incomplete information might infer the model reliability. 
+
 
 ```{r}
+sliderInput("Pregnancy", label = "Pregnancy:",
+            min=0,max=17,value=0,step=1)
+numericInput("BMI", "BMI:", 20, min = 0, max = 81, step=0.1)
+numericInput("Age", "Age:", 20, min = 0, max = 120, step=1)
+numericInput("Glucose", "Glucose:", 10, min = 0, max = 200, step=1)
+numericInput("BloodPressure", "Blood Pressure:", 60, min = 0, max = 120, step=1)
+numericInput("SkinThickness", "Skin Thickness:", 10, min = 0, max = 110, step=1)
+numericInput("Insulin", "Insulin:", 10, min = 0, max = 744, step=1)
+numericInput("PedigreePedigreeFunction", "Diabetes Pedigree Function:", 0.5, min = 0, max = 1, step=0.001)
+
 
 ```
 
-Column {data-width=350}
+Column {data-width=500}
 -----------------------------------------------------------------------
 
-### Chart B
+### Results from SVM Model
 
 ```{r}
-
+test=reactive({
+Pregnancies=input$Pregnancy
+Glucose=input$Glucose
+BloodPressure=input$BloodPressure
+SkinThickness=input$SkinThickness
+BMI=input$BMI
+Insulin=input$Insulin
+DiabetesPedigreeFunction=input$PedigreePedigreeFunction
+Age=input$Age
+test=data.frame(Pregnancies,Glucose,BloodPressure,SkinThickness,BMI,Insulin,DiabetesPedigreeFunction,Age)})
+```
+#### According to our calculation, your chance (out of 1) of having diabetes is:
+```{r}
+renderPrint({
+prediction_svm <- predict(svm_model,test(), probability = T)
+pred_prob_svm <- attr(prediction_svm, "probabilities")[,"1"]
+print(pred_prob_svm)
+})
+renderText({
+prediction_svm <- predict(svm_model,test(), probability = T)
+pred_prob_svm <- attr(prediction_svm, "probabilities")
+if (prediction_svm ==1){
+  print('You are likely having Diabetes.')
+}else{
+  print('You do not seem to have Diabetes comparing to other patients in our database.')}
+})
 ```
 
-### Chart C
-
+### Results from RF Model
+#### According to our calculation, your chance (out of 1) of having diabetes is:
 ```{r}
 
+renderPrint({
+
+prediction_rf <- predict(rf_classifier,test(), probability = T)
+prediction_prob_rf <- predict(rf_classifier,test(),type="prob")[,"1"]
+print(prediction_prob_rf)
+
+})
+renderText({
+
+prediction_rf <- predict(rf_classifier,test(), probability = T)
+prediction_prob_rf <- predict(rf_classifier,test(),type="prob")
+if (prediction_rf ==1){
+  
+  ('You are likely having Diabetes.')}
+else{
+  ('You do not seem to have Diabetes comparing to other patients in our database.')}
+})
 ```
 
 Documentation
