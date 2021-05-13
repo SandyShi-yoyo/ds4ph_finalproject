@@ -1,0 +1,172 @@
+---
+title: "Diabetes Prediction"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(dplyr)
+library(readr)
+library(klaR) # Naïve Bayes
+library(e1071) # SVM
+library(ROCR) # ROC curves and AUC
+library(VennDiagram)
+library(RColorBrewer)
+library(vioplot)
+library(hfunk)
+library(gplots) # heatmap.2
+library(caret) # confusionmatrix
+library(randomForest)
+
+```
+
+```{r warning=FALSE, message=FALSE}
+data1 = read_csv('diabetes-dataset.csv')
+data2 = read_csv('diabetes_data_upload.csv')
+draw_confusion_matrix <- function(cm) {
+
+  layout(matrix(c(1,1,2)))
+  par(mar=c(2,2,2,2))
+  plot(c(100, 345), c(300, 450), type = "n", xlab="", ylab="", xaxt='n', yaxt='n')
+  title('CONFUSION MATRIX', cex.main=2)
+
+  # create the matrix 
+  rect(150, 430, 240, 370, col='#3F97D0')
+  text(195, 435, 'Class1', cex=1.2)
+  rect(250, 430, 340, 370, col='#F7AD50')
+  text(295, 435, 'Class2', cex=1.2)
+  text(125, 370, 'Predicted', cex=1.3, srt=90, font=2)
+  text(245, 450, 'Actual', cex=1.3, font=2)
+  rect(150, 305, 240, 365, col='#F7AD50')
+  rect(250, 305, 340, 365, col='#3F97D0')
+  text(140, 400, 'Class1', cex=1.2, srt=90)
+  text(140, 335, 'Class2', cex=1.2, srt=90)
+
+  # add in the cm results 
+  res <- as.numeric(cm$table)
+  text(195, 400, res[1], cex=1.6, font=2, col='white')
+  text(195, 335, res[2], cex=1.6, font=2, col='white')
+  text(295, 400, res[3], cex=1.6, font=2, col='white')
+  text(295, 335, res[4], cex=1.6, font=2, col='white')
+
+  # add in the specifics 
+  plot(c(100, 0), c(100, 0), type = "n", xlab="", ylab="", main = "DETAILS", xaxt='n', yaxt='n')
+  text(10, 85, names(cm$byClass[1]), cex=1.2, font=2)
+  text(10, 70, round(as.numeric(cm$byClass[1]), 3), cex=1.2)
+  text(30, 85, names(cm$byClass[2]), cex=1.2, font=2)
+  text(30, 70, round(as.numeric(cm$byClass[2]), 3), cex=1.2)
+  text(50, 85, names(cm$byClass[5]), cex=1.2, font=2)
+  text(50, 70, round(as.numeric(cm$byClass[5]), 3), cex=1.2)
+  text(70, 85, names(cm$byClass[6]), cex=1.2, font=2)
+  text(70, 70, round(as.numeric(cm$byClass[6]), 3), cex=1.2)
+  text(90, 85, names(cm$byClass[7]), cex=1.2, font=2)
+  text(90, 70, round(as.numeric(cm$byClass[7]), 3), cex=1.2)
+
+  # add in the accuracy information 
+  text(30, 35, names(cm$overall[1]), cex=1.5, font=2)
+  text(30, 20, round(as.numeric(cm$overall[1]), 3), cex=1.4)
+  text(70, 35, names(cm$overall[2]), cex=1.5, font=2)
+  text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
+}  
+```
+
+Model Evalutation on Data 1
+=======================================================================
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### SVM Prediction Model Confusion Matrix
+```{r}
+# SVM
+data1$Outcome = as.factor(data1$Outcome)
+testidx <- which(1:(dim(data1[,1])[1])%%5 == 0)
+dftrain <- data1[-testidx,]
+dftest <- data1[testidx,]
+# hist(as.numeric(dftrain$Outcome))
+# hist(as.numeric(dftest$Outcome))
+svm_model <- svm(Outcome~., data = dftrain, probability = T, kernel="polynomial", degree=5)
+svm_prediction <- predict(svm_model, dftest, probability = T)
+# table(predicted=svm_prediction, observed=dftest$Outcome)
+cmsvm=confusionMatrix(svm_prediction, dftest$Outcome, positive = "1")
+draw_confusion_matrix(cmsvm)
+```
+
+### SVM Prediction Model ROC
+```{r}
+pred_class_svm <- attr(svm_prediction, "probabilities")[, "1"]
+actual_class_svm <- dftest$Outcome == '1'
+pred_svm <- prediction(pred_class_svm, actual_class_svm)
+svmperf <- performance(pred_svm, "tpr", "fpr")
+svmauc <- performance(pred_svm, "auc")
+svmauc <- unlist(slot(svmauc, "y.values"))
+plot(svmperf, colorize=TRUE)
+title("SVM ROC curve and AUC")
+legend(0.6,0.3,c(c(paste('AUC is', round(svmauc,3))),"\n"),
+       border="white",cex=1.0, box.col = "white")
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+### RF Prediction Model Confusion Matrix
+```{r}
+# RF
+rf_classifier = randomForest(Outcome ~ ., data=dftrain, ntree=100, mtry=2, importance=TRUE, probability = T)
+prediction_for_table <- predict(rf_classifier,dftest[,-9], probability = T)
+# table(observed=dftest$Outcome,predicted=prediction_for_table)
+cmrf=confusionMatrix(prediction_for_table, dftest$Outcome, positive = "1")
+draw_confusion_matrix(cmrf)
+```
+
+### RF Prediction Model ROC
+```{r}
+prediction_for_roc_curve <- predict(rf_classifier,dftest[,-9],type="prob")
+pred_class_rf <- prediction_for_roc_curve[, "1"]
+actual_class_rf <- dftest$Outcome == '1'
+pred_rf <- prediction(pred_class_rf, actual_class_rf)
+rfperf <- performance(pred_rf, "tpr", "fpr")
+rfauc <- performance(pred_rf, "auc")
+rfauc <- unlist(slot(rfauc, "y.values"))
+plot(rfperf, colorize=TRUE)
+title("RF ROC curve and AUC")
+legend(0.6,0.3,c(c(paste('AUC is', round(rfauc,3))),"\n"),
+       border="white",cex=1.0, box.col = "white")
+
+
+```
+```
+
+
+
+Test Your Chance of Getting Diabetes
+=======================================================================
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Chart B
+
+```{r}
+
+```
+
+### Chart C
+
+```{r}
+
+```
+
+Documentation
+=======================================================================
