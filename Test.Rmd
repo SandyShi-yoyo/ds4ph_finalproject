@@ -1,0 +1,147 @@
+---
+title: "Diabetes Prediction"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(plotly)
+```
+
+
+Overview
+=======================================================================
+
+Row {data-height=700}
+-----------------------------------------------------------------------
+
+### Plot1. Age-adjusted prevalence of diagnosed diabetes by detailed race and sex among adults aged 18 years or older, United States, 2017–2018.
+```{r}
+renderPlotly({
+  dat1 = read_csv('https://raw.githubusercontent.com/zou2/Test/main/Overview_gender.csv')
+  g1 = ggplot(dat1,aes(x = as.factor(Gender), 
+                   y = Prevalence,
+                   fill = as.factor(Race)))
+  g1 = g1 + geom_col()
+  G1 = ggplotly(g1)
+  G1
+})
+```
+
+### Plot2. Trends in age-adjusted prevalence of diagnosed, undiagnosed, and total diabetes among adults aged 18 years or older, United States, 1999–2016. 
+```{r}
+renderPlotly({
+  dat2 = read_csv('https://raw.githubusercontent.com/zou2/Test/main/Overview_diag.csv')
+  g2 = ggplot(dat2,aes(x = Time,
+                   y = Prevalence,
+                   group = as.factor(Type),
+                   color = as.factor(Type)))
+  g2 = g2 + geom_line()+theme(axis.text.x=element_text(angle=90,hjust=1))
+  G2 = ggplotly(g2)
+  G2
+})
+```
+
+Row {data-height=300}
+-----------------------------------------------------------------------
+
+### About the overview
+- Plot1 shows the prevalence of diabetes in people with different gender and race in the US between 2017 and 2018.
+- Plot2 shows the prevalence of both the diagnosed and undiagnosed diabetes among people who are 18 years or older in the US between 1999 and 2016.
+- Both of the plots are generated from "the National Diabetes Statistics Report 2020. Estimates of diabetes and its burden in the United States" pubslished by CDC.
+
+
+
+Complete Model Evalutation on 2000 Patient Data
+=======================================================================
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### SVM Prediction Model Confusion Matrix
+```{r}
+
+```
+
+### SVM Prediction Model 5 Folds Cross Validation ROC
+```{r}
+
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+### RF Prediction Model Confusion Matrix
+```{r}
+
+```
+
+
+### RF Prediction Model 5-Folds Cross Validation ROC
+```{r}
+
+```
+
+
+
+Test Your Chance of Getting Diabetes
+=======================================================================
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Information Collection
+We need all 9 fields be filled out in order to make the best prediction.
+Incomplete information might infer the model reliability. 
+
+
+```{r}
+
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Results from SVM Model
+
+```{r}
+
+```
+#### According to our calculation, your chance (out of 1) of having diabetes is:
+```{r}
+
+```
+
+### Results from RF Model
+#### According to our calculation, your chance (out of 1) of having diabetes is:
+```{r}
+
+```
+
+
+About the app
+=======================================================================
+
+- **Introduction:** Welcome to the diabetes prediction app! This app aims to provide predictions on the chance a user will develop diabetes which hopefully can remind users to be aware of the importance of having healthier diets and living habits to reduce the chance of developing diabetes. The two data sets are both from Kaggle and are data about the different factors that are associated with the development of diabetes. The first data set has 9 variables (8 factors & 1 outcome) and 2000 observations. It was used to train and test the first model and provide predictions on the chance of developing diabetes based on BMI, age, glucose level, blood pressure, and 4 other factors. The second data set has 17 variables (16 factors & 1 class/outcome) and 520 observations. It was used to train and test the second model and provide predictions on the chance of developing diabetes based on gender, obesity, muscle stiffness, sudden weight loss, delay healing, and 12 other factors. 
+
+
+- **User guide:** There are a total of    panels in this app. The overview panel provides some basic statistics about the prevalence of Diabetes in the United States in the past few years. The “complete model evaluation on 2000 patient data” panel gives 
+
+
+- **About the prediction model:** 
+
+
+
+- **Creators:** Shunyao Lei, Junyuan Shi, & Zihui Ou
+
+- **Last updated:** 05/18/2021
+
+- **References:** 
+  + https://www.kaggle.com/sujan97/early-stage-diabetes-2020
+  + https://www.kaggle.com/vikasukani/diabetes-data-set
+  + https://www.cdc.gov/diabetes/pdfs/data/statistics/national-diabetes-statistics-report.pdf
+
+
