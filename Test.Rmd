@@ -90,8 +90,8 @@ Column {data-width=500}
 
 Test Your Chance of Getting Diabetes
 =======================================================================
-Column {data-width=500}
------------------------------------------------------------------------
+Column {.sidebar data-width=500}
+-------------------------------------
 
 ### Information Collection
 We need all 9 fields be filled out in order to make the best prediction.
@@ -102,7 +102,7 @@ Incomplete information might infer the model reliability.
 
 ```
 
-Column {data-width=500}
+Row {data-height=500}
 -----------------------------------------------------------------------
 
 ### Results from SVM Model
@@ -115,7 +115,14 @@ Column {data-width=500}
 
 ```
 
+Row {data-height=500}
+-----------------------------------------------------------------------
+
 ### Results from RF Model
+```{r}
+
+```
+
 #### According to our calculation, your chance (out of 1) of having diabetes is:
 ```{r}
 
@@ -128,10 +135,10 @@ About the app
 - **Introduction:** Welcome to the diabetes prediction app! This app aims to provide predictions on the chance a user will develop diabetes which hopefully can remind users to be aware of the importance of having healthier diets and living habits to reduce the chance of developing diabetes. The two data sets are both from Kaggle and are data about the different factors that are associated with the development of diabetes. The first data set has 9 variables (8 factors & 1 outcome) and 2000 observations. It was used to train and test the first model and provide predictions on the chance of developing diabetes based on BMI, age, glucose level, blood pressure, and 4 other factors. The second data set has 17 variables (16 factors & 1 class/outcome) and 520 observations. It was used to train and test the second model and provide predictions on the chance of developing diabetes based on gender, obesity, muscle stiffness, sudden weight loss, delay healing, and 12 other factors. 
 
 
-- **User guide:** There are a total of    panels in this app. The overview panel provides some basic statistics about the prevalence of Diabetes in the United States in the past few years. The “complete model evaluation on 2000 patient data” panel gives 
+- **User guide:** There are a total of 4 panels in this app. The overview panel provides some basic statistics about the prevalence of diabetes in the United States in the past few years. The “complete model evaluation on 2000 patient data” panel gives the evaluations of the two models we built using the diabetes data set. The “” panel allows users to test their chance to develop diabetes based on the information they provide. The two prediction models used in this app are support-vector machine (SVM) and random forest (RF). After users inputting all the required information, both models will give predictions on the chance of developing diabetes. Last, this “about the app” panel provides introduction and user guide of this app to the users.
 
 
-- **About the prediction model:** 
+- **About the prediction model:** our first model was built using support-vector machine (SVM), and the second model was built using random forest (RF). Both models were built using the first data set and have accuracy above 80%.
 
 
 
