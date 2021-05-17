@@ -2,7 +2,7 @@
 title: "Diabetes Prediction"
 output: 
   flexdashboard::flex_dashboard:
-    orientation: columns
+    orientation: rows
     vertical_layout: fill
 runtime: shiny
 ---
@@ -75,18 +75,16 @@ draw_confusion_matrix <- function(cm) {
   text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
 }  
 ```
-
 Overview
 =======================================================================
 
 Row {data-height=700}
 -----------------------------------------------------------------------
 
-### Plot 1. Age-adjusted prevalence of diagnosed diabetes by detailed race and sex among adults aged 18 years or older, United States, 2017–2018.
+### Plot1. Age-adjusted prevalence of diagnosed diabetes by detailed race and sex among adults aged 18 years or older, United States, 2017–2018.
 ```{r}
 renderPlotly({
   dat1 = read_csv('https://raw.githubusercontent.com/zou2/Test/main/Overview_gender.csv')
-  # dat1 = read_csv('Overview_gender.csv')
   g1 = ggplot(dat1,aes(x = as.factor(Gender), 
                    y = Prevalence,
                    fill = as.factor(Race)))
@@ -96,7 +94,7 @@ renderPlotly({
 })
 ```
 
-### Plot 2. Trends in age-adjusted prevalence of diagnosed, undiagnosed, and total diabetes among adults aged 18 years or older, United States, 1999–2016. 
+### Plot2. Trends in age-adjusted prevalence of diagnosed, undiagnosed, and total diabetes among adults aged 18 years or older, United States, 1999–2016. 
 ```{r}
 renderPlotly({
   dat2 = read_csv('https://raw.githubusercontent.com/zou2/Test/main/Overview_diag.csv')
@@ -114,18 +112,19 @@ Row {data-height=300}
 -----------------------------------------------------------------------
 
 ### About the overview
-- Plot 1 shows the prevalence of diabetes in people with different gender and race in the US between 2017 and 2018.
-- Plot 2 shows the prevalence of both the diagnosed and undiagnosed diabetes among people who are 18 years or older in the US between 1999 and 2016.
+- Plot1 shows the prevalence of diabetes in people with different gender and race in the US between 2017 and 2018.
+- Plot2 shows the prevalence of both the diagnosed and undiagnosed diabetes among people who are 18 years or older in the US between 1999 and 2016.
 - Both of the plots are generated from "the National Diabetes Statistics Report 2020. Estimates of diabetes and its burden in the United States" pubslished by CDC.
+
 
 
 Model Evalutation on 2000 Patient Data
 =======================================================================
 
-Row {data-height=200}
+Column {data-width=300}
 -----------------------------------------------------------------------
 
-### Plot 0. Predictor Correlation Observation
+### Predictor Correlation Observation
 ```{r}
 data1<-data1[complete.cases(data1),]
 data1$Outcome<-as.numeric(data1$Outcome)
@@ -135,13 +134,7 @@ corrplot(M, type="upper", order="hclust",
 
 ```
 
-### About Model Evaluation
 
-- According to Plot 1, the SVM model reports an accuracy of 0.828 on 400 randomly selected test patient data. With 5-Folds Cross Validation, the ROCs are shown in Plot 2, and the average AUC in all folds is above 0.8.  
-- According to Plot 3, the Random Forest model reports an accuracy of 1.000 on 400 randomly selected test patient data. With 5-Folds Cross Validation, the ROCs are shown in Plot 4, and the average AUC in all folds is 1. 
-
-Row {data-height=300}
------------------------------------------------------------------------
 
 ### Plot 1. SVM Prediction Model Confusion Matrix
 ```{r}
@@ -192,9 +185,14 @@ legend(0.6,0.9,c(c(paste('AUC is', svmauc_c)),"\n"),
 plot(cross_perf, lwd=3,avg="vertical",spread.estimate="boxplot",add=T)
 ```
 
-
-Row {data-height=300}
+Column {data-width=300}
 -----------------------------------------------------------------------
+### About Model Evaluation
+
+- According to Plot 1, the SVM model reports an accuracy of 0.828 on 400 randomly selected test patient data. With 5-Folds Cross Validation, the ROCs are shown in Plot 2, and the average AUC in all folds is above 0.8.  
+- According to Plot 3, the Random Forest model reports an accuracy of 1.000 on 400 randomly selected test patient data. With 5-Folds Cross Validation, the ROCs are shown in Plot 4, and the average AUC in all folds is 1. 
+
+
 ### Plot 3. RF Prediction Model Confusion Matrix
 ```{r}
 # RF
@@ -245,8 +243,11 @@ plot(cross_perf, lwd=3,avg="vertical",spread.estimate="boxplot",add=T)
 
 Test Your Chance of Having Diabetes
 =======================================================================
-Column {data-width=500}
------------------------------------------------------------------------
+
+
+
+Column {.sidebar data-width=500}
+-------------------------------------
 
 ### Information Collection
 We need all 9 fields be filled out in order to make the best prediction.
@@ -268,10 +269,9 @@ numericInput("PedigreePedigreeFunction", "Diabetes pedigree function (a function
 
 ```
 
-Column {data-width=500}
------------------------------------------------------------------------
 
-### Results from SVM Model
+
+
 
 ```{r}
 test=reactive({
@@ -286,6 +286,9 @@ Age=input$Age
 test=data.frame(Pregnancies,Glucose,BloodPressure,SkinThickness,BMI,Insulin,DiabetesPedigreeFunction,Age)})
 ```
 
+Row {data-width=300}
+-----------------------------------------------------------------------
+### Results from SVM Model
 #### According to our calculation, your chance (out of 1) of having diabetes is:
 ```{r}
 renderPrint({
@@ -303,6 +306,9 @@ if (prediction_svm ==1){
 })
 ```
 
+
+Row {data-width=300}
+-----------------------------------------------------------------------
 ### Results from RF Model
 #### According to our calculation, your chance (out of 1) of having diabetes is:
 ```{r}
