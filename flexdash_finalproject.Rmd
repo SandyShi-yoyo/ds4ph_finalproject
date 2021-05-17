@@ -81,7 +81,7 @@ Overview
 Row {data-height=700}
 -----------------------------------------------------------------------
 
-### Plot1. Age-adjusted prevalence of diagnosed diabetes by detailed race and sex among adults aged 18 years or older, United States, 2017–2018.
+### Plot 1. Age-adjusted prevalence of diagnosed diabetes by detailed race and sex among adults aged 18 years or older, United States, 2017–2018.
 ```{r}
 renderPlotly({
   dat1 = read_csv('https://raw.githubusercontent.com/zou2/Test/main/Overview_gender.csv')
@@ -94,7 +94,7 @@ renderPlotly({
 })
 ```
 
-### Plot2. Trends in age-adjusted prevalence of diagnosed, undiagnosed, and total diabetes among adults aged 18 years or older, United States, 1999–2016. 
+### Plot 2. Trends in age-adjusted prevalence of diagnosed, undiagnosed, and total diabetes among adults aged 18 years or older, United States, 1999–2016. 
 ```{r}
 renderPlotly({
   dat2 = read_csv('https://raw.githubusercontent.com/zou2/Test/main/Overview_diag.csv')
@@ -112,8 +112,8 @@ Row {data-height=300}
 -----------------------------------------------------------------------
 
 ### About the overview
-- Plot1 shows the prevalence of diabetes in people with different gender and race in the US between 2017 and 2018.
-- Plot2 shows the prevalence of both the diagnosed and undiagnosed diabetes among people who are 18 years or older in the US between 1999 and 2016.
+- Plot 1 shows the prevalence of diabetes in people with different gender and race in the US between 2017 and 2018.
+- Plot 2 shows the prevalence of both the diagnosed and undiagnosed diabetes among people who are 18 years or older in the US between 1999 and 2016.
 - Both of the plots are generated from "the National Diabetes Statistics Report 2020. Estimates of diabetes and its burden in the United States" pubslished by CDC.
 
 
