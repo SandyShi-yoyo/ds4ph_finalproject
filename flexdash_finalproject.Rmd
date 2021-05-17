@@ -21,19 +21,21 @@ library(hfunk)
 library(gplots) # heatmap.2
 library(caret) # confusionmatrix
 library(randomForest)
+library(plotly)
+library(corrplot)
+
 
 ```
 
 ```{r warning=FALSE, message=FALSE}
 data1 = read_csv('diabetes-dataset.csv')
 data2 = read_csv('diabetes_data_upload.csv')
-draw_confusion_matrix <- function(cm) {
 
+draw_confusion_matrix <- function(cm) {
   layout(matrix(c(1,1,2)))
   par(mar=c(2,2,2,2))
   plot(c(100, 345), c(300, 450), type = "n", xlab="", ylab="", xaxt='n', yaxt='n')
   title('CONFUSION MATRIX', cex.main=2)
-
   # create the matrix 
   rect(150, 430, 240, 370, col='#3F97D0')
   text(195, 435, 'Class1', cex=1.2)
@@ -74,13 +76,74 @@ draw_confusion_matrix <- function(cm) {
 }  
 ```
 
-Complete Model Evalutation on 2000 Patient Data
+Overview
 =======================================================================
 
-Column {data-width=500}
+Row {data-height=700}
 -----------------------------------------------------------------------
 
-### SVM Prediction Model Confusion Matrix
+### Plot 1. Age-adjusted prevalence of diagnosed diabetes by detailed race and sex among adults aged 18 years or older, United States, 2017–2018.
+```{r}
+renderPlotly({
+  dat1 = read_csv('https://raw.githubusercontent.com/zou2/Test/main/Overview_gender.csv')
+  # dat1 = read_csv('Overview_gender.csv')
+  g1 = ggplot(dat1,aes(x = as.factor(Gender), 
+                   y = Prevalence,
+                   fill = as.factor(Race)))
+  g1 = g1 + geom_col()
+  G1 = ggplotly(g1)
+  G1
+})
+```
+
+### Plot 2. Trends in age-adjusted prevalence of diagnosed, undiagnosed, and total diabetes among adults aged 18 years or older, United States, 1999–2016. 
+```{r}
+renderPlotly({
+  dat2 = read_csv('https://raw.githubusercontent.com/zou2/Test/main/Overview_diag.csv')
+  g2 = ggplot(dat2,aes(x = Time,
+                   y = Prevalence,
+                   group = as.factor(Type),
+                   color = as.factor(Type)))
+  g2 = g2 + geom_line()+theme(axis.text.x=element_text(angle=90,hjust=1))
+  G2 = ggplotly(g2)
+  G2
+})
+```
+
+Row {data-height=300}
+-----------------------------------------------------------------------
+
+### About the overview
+- Plot 1 shows the prevalence of diabetes in people with different gender and race in the US between 2017 and 2018.
+- Plot 2 shows the prevalence of both the diagnosed and undiagnosed diabetes among people who are 18 years or older in the US between 1999 and 2016.
+- Both of the plots are generated from "the National Diabetes Statistics Report 2020. Estimates of diabetes and its burden in the United States" pubslished by CDC.
+
+
+Model Evalutation on 2000 Patient Data
+=======================================================================
+
+Row {data-height=200}
+-----------------------------------------------------------------------
+
+### Plot 0. Predictor Correlation Observation
+```{r}
+data1<-data1[complete.cases(data1),]
+data1$Outcome<-as.numeric(data1$Outcome)
+M <-cor(data1)
+corrplot(M, type="upper", order="hclust",
+         col=brewer.pal(n=8, name="RdYlBu"))
+
+```
+
+### About Model Evaluation
+
+- According to Plot 1, the SVM model reports an accuracy of 0.828 on 400 randomly selected test patient data. With 5-Folds Cross Validation, the ROCs are shown in Plot 2, and the average AUC in all folds is above 0.8.  
+- According to Plot 3, the Random Forest model reports an accuracy of 1.000 on 400 randomly selected test patient data. With 5-Folds Cross Validation, the ROCs are shown in Plot 4, and the average AUC in all folds is 1. 
+
+Row {data-height=300}
+-----------------------------------------------------------------------
+
+### Plot 1. SVM Prediction Model Confusion Matrix
 ```{r}
 # SVM
 data1$Outcome = as.factor(data1$Outcome)
@@ -96,7 +159,7 @@ cmsvm=confusionMatrix(svm_prediction, dftest$Outcome, positive = "1")
 draw_confusion_matrix(cmsvm)
 ```
 
-### SVM Prediction Model 5 Folds Cross Validation ROC
+### Plot 2. SVM Prediction Model 5 Folds Cross Validation ROC
 ```{r}
 # Repeat using 5fold cross validation. Split data into 5 equally sized parts
 folds <- function(x,n) split(x, sort(rep(1:n,len=length(x))))
@@ -129,9 +192,10 @@ legend(0.6,0.9,c(c(paste('AUC is', svmauc_c)),"\n"),
 plot(cross_perf, lwd=3,avg="vertical",spread.estimate="boxplot",add=T)
 ```
 
-Column {data-width=500}
+
+Row {data-height=300}
 -----------------------------------------------------------------------
-### RF Prediction Model Confusion Matrix
+### Plot 3. RF Prediction Model Confusion Matrix
 ```{r}
 # RF
 rf_classifier = randomForest(Outcome ~ ., data=dftrain, ntree=100, mtry=2, importance=TRUE, probability = T)
@@ -142,7 +206,7 @@ draw_confusion_matrix(cmrf)
 ```
 
 
-### RF Prediction Model 5-Folds Cross Validation ROC
+### Plot 4. RF Prediction Model 5-Folds Cross Validation ROC
 ```{r}
 # Repeat using 10fold cross validation. Split data into 10 equally sized parts
 folds <- function(x,n) split(x, sort(rep(1:n,len=length(x))))
@@ -178,7 +242,8 @@ plot(cross_perf, lwd=3,avg="vertical",spread.estimate="boxplot",add=T)
 
 
 
-Test Your Chance of Getting Diabetes
+
+Test Your Chance of Having Diabetes
 =======================================================================
 Column {data-width=500}
 -----------------------------------------------------------------------
@@ -188,16 +253,17 @@ We need all 9 fields be filled out in order to make the best prediction.
 Incomplete information might infer the model reliability. 
 
 
+
 ```{r}
-sliderInput("Pregnancy", label = "Pregnancy:",
+sliderInput("Pregnancy", label = "Number of times pregnancy:",
             min=0,max=17,value=0,step=1)
 numericInput("BMI", "BMI:", 20, min = 0, max = 81, step=0.1)
 numericInput("Age", "Age:", 20, min = 0, max = 120, step=1)
-numericInput("Glucose", "Glucose:", 10, min = 0, max = 200, step=1)
-numericInput("BloodPressure", "Blood Pressure:", 60, min = 0, max = 120, step=1)
-numericInput("SkinThickness", "Skin Thickness:", 10, min = 0, max = 110, step=1)
-numericInput("Insulin", "Insulin:", 10, min = 0, max = 744, step=1)
-numericInput("PedigreePedigreeFunction", "Diabetes Pedigree Function:", 0.5, min = 0, max = 1, step=0.001)
+numericInput("Glucose", "Plasma glucose concentration over 2 hours in an oral glucose tolerance test:", 10, min = 0, max = 200, step=1)
+numericInput("BloodPressure", "Diastolic blood pressure (mm Hg):", 60, min = 0, max = 120, step=1)
+numericInput("SkinThickness", "Triceps skin fold thickness (mm)", 10, min = 0, max = 110, step=1)
+numericInput("Insulin", "2-Hour serum insulin (mu U/ml):", 10, min = 0, max = 744, step=1)
+numericInput("PedigreePedigreeFunction", "Diabetes pedigree function (a function which scores likelihood of diabetes based on family history):", 0.5, min = 0, max = 1, step=0.001)
 
 
 ```
@@ -219,6 +285,7 @@ DiabetesPedigreeFunction=input$PedigreePedigreeFunction
 Age=input$Age
 test=data.frame(Pregnancies,Glucose,BloodPressure,SkinThickness,BMI,Insulin,DiabetesPedigreeFunction,Age)})
 ```
+
 #### According to our calculation, your chance (out of 1) of having diabetes is:
 ```{r}
 renderPrint({
@@ -259,5 +326,29 @@ else{
 })
 ```
 
-Documentation
+
+
+About the app
 =======================================================================
+
+- **Introduction:** Welcome to the diabetes prediction app! This app aims to provide predictions on the chance a user will develop diabetes which hopefully can remind users to be aware of the importance of having healthier diets and living habits to reduce the chance of developing diabetes. The two data sets are both from Kaggle and are data about the different factors that are associated with the development of diabetes. The first data set has 9 variables (8 factors & 1 outcome) and 2000 observations. It was used to train and test the first model and provide predictions on the chance of developing diabetes based on BMI, age, glucose level, blood pressure, and 4 other factors. The second data set has 17 variables (16 factors & 1 class/outcome) and 520 observations. It was used to train and test the second model and provide predictions on the chance of developing diabetes based on gender, obesity, muscle stiffness, sudden weight loss, delay healing, and 12 other factors. 
+
+
+- **User guide:** There are a total of 4 panels in this app. The overview panel provides some basic statistics about the prevalence of diabetes in the United States in the past few years. The “complete model evaluation on 2000 patient data” panel gives the evaluations of the two models we built using the diabetes data set. The “” panel allows users to test their chance to develop diabetes based on the information they provide. The two prediction models used in this app are support-vector machine (SVM) and random forest (RF). After users inputting all the required information, both models will give predictions on the chance of developing diabetes. Last, this “about the app” panel provides introduction and user guide of this app to the users.
+
+
+- **About the prediction model:** our first model was built using support-vector machine (SVM), and the second model was built using random forest (RF). Both models were built using the first data set and have accuracy above 80%.
+
+
+
+- **Creators:** Shunyao Lei, Junyuan(Sandy) Shi, & Zihui Ou
+
+- **Last updated:** 05/18/2021
+
+- **References:** 
+  + https://www.kaggle.com/sujan97/early-stage-diabetes-2020
+  + https://www.kaggle.com/vikasukani/diabetes-data-set
+  + https://www.cdc.gov/diabetes/pdfs/data/statistics/national-diabetes-statistics-report.pdf
+
+
+
