@@ -343,7 +343,7 @@ About the app
 - **User guide:** There are a total of 4 panels in this app. The overview panel provides some basic statistics about the prevalence of diabetes in the United States in the past few years. The “model evaluation on 2000 patient data” panel gives the evaluations of the two models we built using the diabetes data set. The “test your chance of having diabetes” panel allows users to test their chance to develop diabetes based on the information they provide. The two prediction models used in this app are support-vector machine (SVM) and random forest (RF). After users inputting all the required information, both models will give predictions on the chance of developing diabetes. Last, this “about the app” panel provides introduction and user guide of this app to the users.
 
 
-- **About the prediction model:** our first model was built using support-vector machine (SVM), and the second model was built using random forest (RF). Both models were built using the first data set and have accuracy above 80%.
+- **About the prediction model:** our first model was built using support-vector machine (SVM), and the second model was built using random forest (RF). Both models were built using the first data set and have accuracy above 80%. To run this app locally, download the data and model files from the Github project submission repository to your local directory
 
 
 
