@@ -294,9 +294,9 @@ Incomplete information might infer the model reliability.
 ```{r}
 sliderInput("Pregnancy", label = "Number of times pregnancy:",
             min=0,max=17,value=0,step=1)
-numericInput("BMI", "BMI:", 20, min = 0, max = 81, step=0.1)
+numericInput("BMI", "BMI:", 22, min = 0, max = 81, step=0.1)
 numericInput("Age", "Age:", 20, min = 0, max = 120, step=1)
-numericInput("Glucose", "Plasma glucose concentration over 2 hours in an oral glucose tolerance test:", 10, min = 0, max = 200, step=1)
+numericInput("Glucose", "Plasma glucose concentration over 2 hours in an oral glucose tolerance test:", 100, min = 0, max = 200, step=1)
 numericInput("BloodPressure", "Diastolic blood pressure (mm Hg):", 60, min = 0, max = 120, step=1)
 numericInput("SkinThickness", "Triceps skin fold thickness (mm)", 10, min = 0, max = 110, step=1)
 numericInput("Insulin", "2-Hour serum insulin (mu U/ml):", 10, min = 0, max = 744, step=1)
