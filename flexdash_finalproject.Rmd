@@ -78,6 +78,19 @@ draw_confusion_matrix <- function(cm) {
 Overview
 =======================================================================
 
+Column {.sidebar data-width=300}
+-----------------------------------------------------------------------
+### Select the data you want to display
+
+```{r}
+selectInput("G", label = h3("Gender"),
+  choices = list("Total","Men", "Women", "All"))
+
+selectInput("D", label = h3("Type of diabetes"),
+                   choices = list("Diagnosed", "Undiagnosed", "Total", "All"))
+```
+
+
 Row {data-height=700}
 -----------------------------------------------------------------------
 
@@ -85,10 +98,22 @@ Row {data-height=700}
 ```{r}
 renderPlotly({
   dat1 = read_csv('https://raw.githubusercontent.com/zou2/Test/main/Overview_gender.csv')
+  
+
+  if (input$G == "Total") {
+  dat1 = dat1 %>% filter(Gender == "Total")  
+  } else if (input$G == "Men"){
+  dat1 = dat1 %>% filter(Gender == "Men") 
+  } else if (input$G == "Women"){
+  dat1 = dat1 %>% filter(Gender == "Women")
+  } else {
+  dat1 = dat1
+  }
+  
   g1 = ggplot(dat1,aes(x = as.factor(Gender), 
                    y = Prevalence,
                    fill = as.factor(Race)))
-  g1 = g1 + geom_col()
+  g1 = g1 + geom_col() + labs(y= "Prevalence (percentage)", x = "Gender", fill = "Race")
   G1 = ggplotly(g1)
   G1
 })
@@ -98,11 +123,22 @@ renderPlotly({
 ```{r}
 renderPlotly({
   dat2 = read_csv('https://raw.githubusercontent.com/zou2/Test/main/Overview_diag.csv')
+  
+  if (input$D == "Total") {
+  dat2 = dat2 %>% filter(Type == "Total diabetes")  
+  } else if (input$D == "Diagnosed"){
+  dat2 = dat2 %>% filter(Type == "Diagnosed diabetes") 
+  } else if (input$D == "Undiagnosed"){
+  dat2 = dat2 %>% filter(Type == "Undiagnosed diabetes")
+  } else {
+  dat2 = dat2
+  }
+  
   g2 = ggplot(dat2,aes(x = Time,
                    y = Prevalence,
                    group = as.factor(Type),
                    color = as.factor(Type)))
-  g2 = g2 + geom_line()+theme(axis.text.x=element_text(angle=90,hjust=1))
+  g2 = g2 + geom_line()+theme(axis.text.x=element_text(angle=90,hjust=1)) + labs(y= "Prevalence (percentage)", x = "Time periods", color = "Type")
   G2 = ggplotly(g2)
   G2
 })
@@ -112,8 +148,8 @@ Row {data-height=300}
 -----------------------------------------------------------------------
 
 ### About the overview
-- Plot 1 shows the prevalence of diabetes in people with different gender and race in the US between 2017 and 2018.
-- Plot 2 shows the prevalence of both the diagnosed and undiagnosed diabetes among people who are 18 years or older in the US between 1999 and 2016.
+- Plot1 shows the prevalence of diabetes in people with different gender and race in the US between 2017 and 2018.
+- Plot2 shows the prevalence of both the diagnosed and undiagnosed diabetes among people who are 18 years or older in the US between 1999 and 2016.
 - Both of the plots are generated from "the National Diabetes Statistics Report 2020. Estimates of diabetes and its burden in the United States" pubslished by CDC.
 
 
