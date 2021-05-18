@@ -148,8 +148,8 @@ Row {data-height=300}
 -----------------------------------------------------------------------
 
 ### About the overview
-- Plot1 shows the prevalence of diabetes in people with different gender and race in the US between 2017 and 2018.
-- Plot2 shows the prevalence of both the diagnosed and undiagnosed diabetes among people who are 18 years or older in the US between 1999 and 2016.
+- Plot 1 shows the prevalence of diabetes in people with different gender and race in the US between 2017 and 2018.
+- Plot 2 shows the prevalence of both the diagnosed and undiagnosed diabetes among people who are 18 years or older in the US between 1999 and 2016.
 - Both of the plots are generated from "the National Diabetes Statistics Report 2020. Estimates of diabetes and its burden in the United States" pubslished by CDC.
 
 

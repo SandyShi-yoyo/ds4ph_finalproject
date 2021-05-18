@@ -5,8 +5,8 @@ account: sandyshi
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4126576
-bundleId: 4608532
+bundleId: 4609691
 url: https://sandyshi.shinyapps.io/flexdash_finalproject/
-when: 1621277060.28267
+when: 1621302025.22493
 asMultiple: FALSE
 asStatic: FALSE
